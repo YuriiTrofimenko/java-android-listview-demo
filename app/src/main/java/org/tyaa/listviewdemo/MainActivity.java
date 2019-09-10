@@ -16,28 +16,32 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 public class MainActivity extends AppCompatActivity {
 
-    private EditText mUserNameEditText;
-    private EditText mUserEmailEditText;
-    private Button mUserUpdateButton;
+    @BindView(R.id.userNameEditText)
+    EditText mUserNameEditText;
+    @BindView(R.id.userEmailEditText)
+    EditText mUserEmailEditText;
+    @BindView(R.id.userListView)
+    ListView mUserListView;
+
+    List<User> users;
+    ArrayAdapter<User> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mUserNameEditText =
-                MainActivity.this.findViewById(R.id.userNameEditText);
-        mUserEmailEditText =
-                MainActivity.this.findViewById(R.id.userEmailEditText);
-        mUserUpdateButton =
-                MainActivity.this.findViewById(R.id.userUpdateButton);
+        ButterKnife.bind(this);
 
-        final List<User> users = new ArrayList<>();
-        ListView userListView = findViewById(R.id.userListView);
+        users = new ArrayList<>();
 
-        final ArrayAdapter<User> adapter =
+        adapter =
             new ArrayAdapter<User>(MainActivity.this, R.layout.user_list_item, users){
                 @Override
                 public View getView(int position, View convertView, ViewGroup parent) {
@@ -56,28 +60,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
-        userListView.setAdapter(adapter);
-        userListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mUserListView.setAdapter(adapter);
+        mUserListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 User user = users.get(position);
                 mUserNameEditText.setText(user.name);
                 mUserEmailEditText.setText(user.email);
-                mUserUpdateButton.setTag(user.id);
-            }
-        });
-
-        mUserUpdateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                User user =
-                        users.stream()
-                                .filter((u) -> {
-                                    return u.id.equals((Long)(mUserUpdateButton.getTag()));
-                                }).findFirst().get();
-                user.name = mUserNameEditText.getText().toString();
-                user.email = mUserEmailEditText.getText().toString();
-                adapter.notifyDataSetChanged();
+                mUserListView.setTag(user.id);
             }
         });
 
@@ -85,4 +75,18 @@ public class MainActivity extends AppCompatActivity {
             users.add(new User(i, "U" + i, "email" + i, new Date()));
         }
     }
+
+    @OnClick(R.id.userUpdateButton)
+    public void onUserUpdateButtonClick(){
+        User user =
+                users.stream()
+                        .filter((u) -> {
+                            return u.id.equals((Long)(mUserListView.getTag()));
+                        }).findFirst().get();
+        user.name = mUserNameEditText.getText().toString();
+        user.email = mUserEmailEditText.getText().toString();
+        adapter.notifyDataSetChanged();
+    }
 }
+
+
